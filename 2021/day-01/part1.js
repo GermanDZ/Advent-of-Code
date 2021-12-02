@@ -1,0 +1,1 @@
+fetch("https://adventofcode.com/2021/day/1/input").then(response => response.text().then( text => console.log(text.split("\n").map(str => Number.parseInt(str)).reduce((prev, curr) => [curr, prev[1] + ((prev[0] > -1 && curr > prev[0]) ? 1 : 0)] , [-1, 0])[1]) ))
