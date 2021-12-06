@@ -3,5 +3,5 @@
 Today I wrote old-school Java code.
 
 Awswer Part 1: 3847100
-Awswer Part 2: WIP
+Awswer Part 2: 4105235
 
