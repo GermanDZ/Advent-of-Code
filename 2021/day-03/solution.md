@@ -2,6 +2,6 @@
 
 Today I wrote old-school Java code.
 
-Awswer Part 1: 3847100
-Awswer Part 2: 4105235
+Answer Part 1: 3847100
+Answer Part 2: 4105235
 
