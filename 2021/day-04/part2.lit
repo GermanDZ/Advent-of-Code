@@ -1,0 +1,225 @@
+@code_type c .c
+@comment_type // %s
+@compiler lit part2.lit && cc -o part2 part1.c
+@title Day 04 - Part 2 in C
+
+@s Introduction
+
+This is the solution for Advent of Code 2021, Day 4, Part 2.
+
+Use [Literate](https://github.com/zyedidia/Literate) to generate, compile, and get the result run:
+
+`lit part2.lit && cc -o part2 part2.c && ./part2`
+
+--- part2.c
+@{Includes}
+
+@{Constants}
+
+@{Functions}
+
+int main() {
+  char* filename = "input";
+  @{Open file}
+  @{Read numbers}
+  @{Read boards}
+  @{Close file}
+  @{Check the boards}
+  @{Calculate the result}
+  @{Print the result}
+  return result;
+}
+---
+
+Now we can define the `Includes` codeblock:
+
+--- Includes
+#include <stdio.h>
+---
+
+The file is opened for reading:
+
+--- Open file
+FILE *file;
+file = fopen(filename, "r");
+---
+
+We read all the numbers until we can't find the `,` separator
+
+--- Read numbers
+int num[MAX_NUMBERS];
+char sep;
+int numbers = 0;
+int finished = 0;
+while(!finished && fscanf(file,"%d", &num[numbers]) == 1) {
+  fscanf(file, "%c", &sep);
+  numbers++;
+  finished = sep != ',';
+}
+---
+
+The boards are read knowing the size is fixed,
+every 5 cols the row is incremented, until the fifth row is finished,
+once the rows are complete we change the board.
+
+In `boards` we will have the number of boards in the input file.
+
+--- Read boards
+int boards_numbers[MAX_BOARDS][BOARD_ROWS][BOARD_COLS];
+int boards = 0;
+int col = 0;
+int row = 0;
+int value;
+while(fscanf(file,"%d", &value) == 1) {
+  boards_numbers[boards][row][col] = value;
+  col++;
+  if (col == BOARD_COLS) {
+    col = 0;
+    row++;
+    if (row == BOARD_ROWS) {
+      row = 0;
+      boards++;
+    }
+  }
+}
+---
+
+Finally we close the file.
+
+--- Close file
+fclose(file);
+---
+
+With all the information in memory, we check the numbers until
+we find the winner.
+
+We keep drawing numbers, until we get a hit with `check_board`,
+then we get the points in that board.
+
+--- Check the boards
+int position = 0;
+int points = 0;
+int number;
+int discarded = 0;
+while (!points) {
+  number = num[position++];
+  for(int board = 0; board < boards; board++) {
+    mark_board(boards_numbers[board], number);
+  }
+  for(int board = 0; !points && board < boards; board++) {
+    int board_status = check_board(boards_numbers[board]);
+    if (board_status == HIT) {
+      if (discarded < (boards - 1)) {
+        discarded++;
+        discard_board(boards_numbers[board]);
+      } else {
+        points = points_board(boards_numbers[board]);
+      }
+    }
+  }
+}
+---
+
+With the latest numbers and the points we calculate the result.
+
+--- Calculate the result
+int result = points * number;
+---
+
+Showing the result is just printing a number
+
+--- Print the result
+printf("Result Part 2:\n");
+printf("%i\n", result);
+---
+
+This values defines the parameters of the game
+--- Constants
+int MAX_NUMBERS = 500;
+int MAX_BOARDS = 100;
+int BOARD_COLS = 5;
+int BOARD_ROWS = 5;
+int HIT = -1;
+int DISCARDED = -2;
+---
+
+These are the functions to manage the boards
+--- Functions
+@{Mark a board}
+@{Check a board}
+@{Discard a board}
+@{Points in board}
+---
+
+Given a number, we walk the board, checking in every row if the number is
+in some column, when we find the number we put a `HIT` in the place.
+--- Mark a board
+void mark_board(int board[BOARD_ROWS][BOARD_COLS], int number) {
+  for(int row = 0; row < BOARD_ROWS; row++) {
+    for(int col = 0; col < BOARD_COLS; col++) {
+      if (board[row][col] == number) {
+        board[row][col] = HIT;
+      }
+    }
+  }
+}
+---
+
+To check if is a winning board, we check the rows verifying if
+all the numbers are a `HIT` then it's a winner. In case of not
+finding a whole winner row, we check the columns, doing the same
+procedure.
+
+--- Check a board
+int check_board(int board[BOARD_ROWS][BOARD_COLS]) {
+  if (board[0][0] == DISCARDED) {
+    return DISCARDED;
+  }
+  int sum;
+  for(int row = 0; row < BOARD_ROWS; row++) {
+    sum = 0;
+    for(int col = 0; col < BOARD_COLS; col++) {
+      sum += board[row][col];
+    }
+    if (sum == HIT * BOARD_COLS) {
+      return HIT;
+    }
+  }
+  for(int col = 0; col < BOARD_COLS; col++) {
+    sum = 0;
+    for(int row = 0; row < BOARD_ROWS; row++) {
+      sum += board[row][col];
+    }
+    if (sum == HIT * BOARD_ROWS) {
+      return HIT;
+    }
+  }
+  return 0;
+}
+---
+
+A board can be discarded after a winning number,
+marking the board as discarded we can avoid checking again the board.
+
+--- Discard a board
+void discard_board(int board[BOARD_ROWS][BOARD_COLS]) {
+  board[0][0] = DISCARDED;
+}
+---
+
+Given a board, the points are calculated as the sum of all the non-hitted
+numbers.
+Sum the points in a board
+--- Points in board
+int points_board(int board[BOARD_ROWS][BOARD_COLS]) {
+  int points = 0;
+  for(int row = 0; row < BOARD_ROWS; row++) {
+    for(int col = 0; col < BOARD_COLS; col++) {
+      if (board[row][col] != HIT) {
+        points += board[row][col];
+      }
+    }
+  }
+  return points;
+}
+---
