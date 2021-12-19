@@ -1,4 +1,4 @@
 ## Day 9
 
 Answer Part 1: 462
-Answer Part 2: 
+Answer Part 2: 1397760
